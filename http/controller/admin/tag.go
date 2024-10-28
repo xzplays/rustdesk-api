@@ -73,7 +73,7 @@ func (ct *Tag) Create(c *gin.Context) {
 		response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed")+err.Error())
 		return
 	}
-	response.Success(c, u)
+	response.Success(c, nil)
 }
 
 // List 列表
@@ -101,8 +101,14 @@ func (ct *Tag) List(c *gin.Context) {
 		query.UserId = int(u.Id)
 	}
 	res := service.AllService.TagService.List(query.Page, query.PageSize, func(tx *gorm.DB) {
+		tx.Preload("Collection", func(txc *gorm.DB) *gorm.DB {
+			return txc.Select("id,name")
+		})
 		if query.UserId > 0 {
 			tx.Where("user_id = ?", query.UserId)
+		}
+		if query.CollectionId != nil && *query.CollectionId >= 0 {
+			tx.Where("collection_id = ?", query.CollectionId)
 		}
 	})
 	response.Success(c, res)
