@@ -64,9 +64,9 @@ func (ct *Tag) Create(c *gin.Context) {
 		return
 	}
 	t := f.ToTag()
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) || t.UserId == 0 {
-		t.UserId = u.Id
+	if t.UserId == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError"))
+		return
 	}
 	err := service.AllService.TagService.Create(t)
 	if err != nil {
@@ -95,10 +95,6 @@ func (ct *Tag) List(c *gin.Context) {
 	if err := c.ShouldBindQuery(query); err != nil {
 		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
 		return
-	}
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) || query.IsMy == 1 {
-		query.UserId = int(u.Id)
 	}
 	res := service.AllService.TagService.List(query.Page, query.PageSize, func(tx *gorm.DB) {
 		tx.Preload("Collection", func(txc *gorm.DB) *gorm.DB {
@@ -140,12 +136,12 @@ func (ct *Tag) Update(c *gin.Context) {
 		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError"))
 		return
 	}
-	t := f.ToTag()
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && t.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
+	ex := service.AllService.TagService.InfoById(f.Id)
+	if ex.Id == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
 		return
 	}
+	t := f.ToTag()
 	err := service.AllService.TagService.Update(t)
 	if err != nil {
 		response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed")+err.Error())
@@ -177,20 +173,15 @@ func (ct *Tag) Delete(c *gin.Context) {
 		response.Fail(c, 101, errList[0])
 		return
 	}
-	t := service.AllService.TagService.InfoById(f.Id)
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && t.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
+	ex := service.AllService.TagService.InfoById(f.Id)
+	if ex.Id == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
 		return
 	}
-	if u.Id > 0 {
-		err := service.AllService.TagService.Delete(t)
-		if err == nil {
-			response.Success(c, nil)
-			return
-		}
-		response.Fail(c, 101, err.Error())
+	err := service.AllService.TagService.Delete(ex)
+	if err == nil {
+		response.Success(c, nil)
 		return
 	}
-	response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
+	response.Fail(c, 101, err.Error())
 }

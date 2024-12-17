@@ -29,11 +29,6 @@ func (abc *AddressBookCollection) Detail(c *gin.Context) {
 	id := c.Param("id")
 	iid, _ := strconv.Atoi(id)
 	t := service.AllService.AddressBookService.CollectionInfoById(uint(iid))
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && t.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
-		return
-	}
 	if t.Id > 0 {
 		response.Success(c, t)
 		return
@@ -64,12 +59,11 @@ func (abc *AddressBookCollection) Create(c *gin.Context) {
 		response.Fail(c, 101, errList[0])
 		return
 	}
-	//t := f.ToAddressBookCollection()
-	t := f
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) || t.UserId == 0 {
-		t.UserId = u.Id
+	if f.UserId == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError"))
+		return
 	}
+	t := f
 	err := service.AllService.AddressBookService.CreateCollection(t)
 	if err != nil {
 		response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed")+err.Error())
@@ -97,10 +91,6 @@ func (abc *AddressBookCollection) List(c *gin.Context) {
 	if err := c.ShouldBindQuery(query); err != nil {
 		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
 		return
-	}
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) || query.IsMy == 1 {
-		query.UserId = int(u.Id)
 	}
 	res := service.AllService.AddressBookService.ListCollection(query.Page, query.PageSize, func(tx *gorm.DB) {
 		if query.UserId > 0 {
@@ -137,11 +127,6 @@ func (abc *AddressBookCollection) Update(c *gin.Context) {
 		return
 	}
 	t := f //f.ToAddressBookCollection()
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && t.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
-		return
-	}
 	err := service.AllService.AddressBookService.UpdateCollection(t)
 	if err != nil {
 		response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed")+err.Error())
@@ -173,20 +158,15 @@ func (abc *AddressBookCollection) Delete(c *gin.Context) {
 		response.Fail(c, 101, errList[0])
 		return
 	}
-	t := service.AllService.AddressBookService.CollectionInfoById(f.Id)
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && t.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
+	ex := service.AllService.AddressBookService.CollectionInfoById(f.Id)
+	if ex.Id == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
 		return
 	}
-	if u.Id > 0 {
-		err := service.AllService.AddressBookService.DeleteCollection(t)
-		if err == nil {
-			response.Success(c, nil)
-			return
-		}
-		response.Fail(c, 101, err.Error())
+	err := service.AllService.AddressBookService.DeleteCollection(ex)
+	if err == nil {
+		response.Success(c, nil)
 		return
 	}
-	response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
+	response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed")+err.Error())
 }
