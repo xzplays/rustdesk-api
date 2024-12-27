@@ -56,10 +56,6 @@ func (ct *LoginLog) List(c *gin.Context) {
 		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
 		return
 	}
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) || query.IsMy == 1 {
-		query.UserId = int(u.Id)
-	}
 	res := service.AllService.LoginLogService.List(query.Page, query.PageSize, func(tx *gorm.DB) {
 		if query.UserId > 0 {
 			tx.Where("user_id = ?", query.UserId)
@@ -93,21 +89,16 @@ func (ct *LoginLog) Delete(c *gin.Context) {
 		return
 	}
 	l := service.AllService.LoginLogService.InfoById(f.Id)
-	u := service.AllService.UserService.CurUser(c)
-	if !service.AllService.UserService.IsAdmin(u) && l.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
+	if l.Id == 0 {
+		response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
 		return
 	}
-	if l.Id > 0 {
-		err := service.AllService.LoginLogService.Delete(l)
-		if err == nil {
-			response.Success(c, nil)
-			return
-		}
-		response.Fail(c, 101, err.Error())
+	err := service.AllService.LoginLogService.Delete(l)
+	if err == nil {
+		response.Success(c, nil)
 		return
 	}
-	response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))
+	response.Fail(c, 101, err.Error())
 }
 
 // BatchDelete 删除
@@ -119,7 +110,7 @@ func (ct *LoginLog) Delete(c *gin.Context) {
 // @Param body body admin.LoginLogIds true "登录日志"
 // @Success 200 {object} response.Response
 // @Failure 500 {object} response.Response
-// @Router /admin/login_log/delete [post]
+// @Router /admin/login_log/batchDelete [post]
 // @Security token
 func (ct *LoginLog) BatchDelete(c *gin.Context) {
 	f := &admin.LoginLogIds{}
