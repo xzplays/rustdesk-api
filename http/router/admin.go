@@ -201,6 +201,8 @@ func AuditBind(rg *gin.RouterGroup) {
 	afR.GET("/list", cont.FileList)
 	afR.POST("/delete", cont.FileDelete)
 	afR.POST("/batchDelete", cont.BatchFileDelete)
+	alR := rg.Group("/audit_login").Use(middleware.AdminPrivilege())
+	alR.GET("/list", cont.LoginList)
 }
 func AddressBookCollectionBind(rg *gin.RouterGroup) {
 	aR := rg.Group("/address_book_collection").Use(middleware.AdminPrivilege())

@@ -210,3 +210,38 @@ func (a *Audit) BatchFileDelete(c *gin.Context) {
 	response.Fail(c, 101, err.Error())
 	return
 }
+
+// LoginList 列表
+// @Tags 登录日志
+// @Summary 登录日志列表
+// @Description hbbs MUST_LOGIN 的 token 校验记录（放行与拒绝都在内）
+// @Accept  json
+// @Produce  json
+// @Param page query int false "页码"
+// @Param page_size query int false "页大小"
+// @Param username query string false "用户名"
+// @Param guid query string false "设备ID"
+// @Param result query string false "结果"
+// @Success 200 {object} response.Response{data=model.AuditLoginList}
+// @Failure 500 {object} response.Response
+// @Router /admin/audit_login/list [get]
+// @Security token
+func (a *Audit) LoginList(c *gin.Context) {
+	query := &admin.AuditLoginQuery{}
+	if err := c.ShouldBindQuery(query); err != nil {
+		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
+		return
+	}
+	res := service.AllService.AuditService.AuditLoginList(query.Page, query.PageSize, func(tx *gorm.DB) {
+		if query.Username != "" {
+			tx.Where("username like ?", "%"+query.Username+"%")
+		}
+		if query.Guid != "" {
+			tx.Where("guid like ?", "%"+query.Guid+"%")
+		}
+		if query.Result != "" {
+			tx.Where("result = ?", query.Result)
+		}
+	})
+	response.Success(c, res)
+}

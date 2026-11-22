@@ -6,6 +6,14 @@ type AuditQuery struct {
 	PageQuery
 }
 
+// AuditLoginQuery filters hbbs token verification records.
+type AuditLoginQuery struct {
+	Username string `form:"username"`
+	Guid     string `form:"guid"`
+	Result   string `form:"result"`
+	PageQuery
+}
+
 type AuditConnLogIds struct {
 	Ids []uint `json:"ids" validate:"required"`
 }
