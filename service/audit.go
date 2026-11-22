@@ -89,6 +89,25 @@ func (as *AuditService) BatchDeleteAuditConn(ids []uint) error {
 	return DB.Where("id in (?)", ids).Delete(&model.AuditConn{}).Error
 }
 
+// CreateAuditLogin records one hbbs token verification (accepted or rejected).
+func (as *AuditService) CreateAuditLogin(u *model.AuditLogin) error {
+	return DB.Create(u).Error
+}
+
+func (as *AuditService) AuditLoginList(page, pageSize uint, where func(tx *gorm.DB)) (res *model.AuditLoginList) {
+	res = &model.AuditLoginList{}
+	res.Page = int64(page)
+	res.PageSize = int64(pageSize)
+	tx := DB.Model(&model.AuditLogin{})
+	if where != nil {
+		where(tx)
+	}
+	tx.Count(&res.Total)
+	tx.Scopes(Paginate(page, pageSize))
+	tx.Order("id desc").Find(&res.AuditLogins)
+	return
+}
+
 func (as *AuditService) BatchDeleteAuditFile(ids []uint) error {
 	return DB.Where("id in (?)", ids).Delete(&model.AuditFile{}).Error
 }

@@ -302,6 +302,7 @@ func Migrate(version uint) {
 		&model.ShareRecord{},
 		&model.AuditConn{},
 		&model.AuditFile{},
+		&model.AuditLogin{},
 		&model.AddressBookCollection{},
 		&model.AddressBookCollectionRule{},
 		&model.ServerCmd{},

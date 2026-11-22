@@ -73,6 +73,12 @@ func ApiInit(g *gin.Engine) {
 		frg.POST("/audit/file", au.AuditFile)
 	}
 
+	{
+		// hbbs calls this from 127.0.0.1 with the shared X-Rdtest-Secret header.
+		s := &api.Server{}
+		frg.POST("/server/verify-token", s.VerifyToken)
+	}
+
 	frg.Use(middleware.RustAuth())
 	{
 		u := &api.User{}

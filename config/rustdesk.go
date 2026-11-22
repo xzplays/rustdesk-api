@@ -21,6 +21,9 @@ type Rustdesk struct {
 	//webclient-magic-queryonline
 	WebclientMagicQueryonline int    `mapstructure:"webclient-magic-queryonline"`
 	WsHost                    string `mapstructure:"ws-host"`
+	// VerifySecret is the shared secret hbbs presents to /api/server/verify-token.
+	// Empty disables the endpoint (MUST_LOGIN=api then rejects every connection).
+	VerifySecret string `mapstructure:"verify-secret"`
 }
 
 func (rd *Rustdesk) LoadKeyFile() {
