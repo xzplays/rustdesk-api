@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/subtle"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,11 @@ type verifyTokenResult struct {
 // @Router /server/verify-token [post]
 func (s *Server) VerifyToken(c *gin.Context) {
 	secret := global.Config.Rustdesk.VerifySecret
+	if secret == "" {
+		// viper does not apply AutomaticEnv to keys missing from config.yaml,
+		// so read the env var directly: the deployed conf may predate this key.
+		secret = os.Getenv("RUSTDESK_API_RUSTDESK_VERIFY_SECRET")
+	}
 	if secret == "" {
 		response.Error(c, "verify-token secret is not configured")
 		return
