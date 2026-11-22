@@ -106,6 +106,13 @@ func ApiInit(g *gin.Engine) {
 	}
 
 	PersonalRoutes(frg)
+	{
+		my := &api.My{}
+		frg.GET("/my/peers", my.Peers)
+		frg.POST("/my/peer/update", my.PeerUpdate)
+		frg.POST("/my/peer/unbind", my.PeerUnbind)
+		frg.GET("/my/address_book", my.AddressBook)
+	}
 	//访问静态文件
 	g.StaticFS("/upload", http.Dir(global.Config.Gin.ResourcesPath+"/public/upload"))
 }
