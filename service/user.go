@@ -258,7 +258,8 @@ func (us *UserService) Update(u *model.User) error {
 			return errors.New("The last admin user cannot be disabled or demoted")
 		}
 	}
-	return DB.Model(u).Updates(u).Error
+	// Updates(struct) skips zero values, so status=0 (disabled) would be dropped.
+	return DB.Model(u).Select("username", "nickname", "email", "avatar", "group_id", "is_admin", "status", "remark").Updates(u).Error
 }
 
 // FlushToken 清空token
