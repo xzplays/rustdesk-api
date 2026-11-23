@@ -338,11 +338,12 @@ func (ct *User) Register(c *gin.Context) {
 	}
 	// 注册成功后自动登录
 	ut := service.AllService.UserService.Login(u, &model.LoginLog{
-		UserId: u.Id,
-		Client: model.LoginLogClientWebAdmin,
-		Uuid:   "",
-		Ip:     c.ClientIP(),
-		Type:   model.LoginLogTypeAccount,
+		UserId:  u.Id,
+		Client:  model.LoginLogClientWebAdmin,
+		Uuid:    "",
+		Ip:      c.ClientIP(),
+		Type:    model.LoginLogTypeAccount,
+		SkipLog: c.GetHeader("X-Rdtest-NoAudit") == "1",
 	})
 	responseLoginSuccess(c, u, ut.Token)
 }
