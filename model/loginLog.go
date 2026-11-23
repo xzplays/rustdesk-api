@@ -12,6 +12,9 @@ type LoginLog struct {
 	UserTokenId uint   `json:"user_token_id" gorm:"default:0;not null;"`
 	IsDeleted   uint   `json:"is_deleted" gorm:"default:0;not null;"`
 	TimeModel
+	// SkipLog is not persisted; callers set it to keep automated smoke tests
+	// out of the audit trail.
+	SkipLog bool `json:"-" gorm:"-"`
 }
 
 const (

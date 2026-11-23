@@ -77,6 +77,7 @@ func (l *Login) Login(c *gin.Context) {
 	ut := service.AllService.UserService.Login(u, &model.LoginLog{
 		UserId:   u.Id,
 		Client:   f.DeviceInfo.Type,
+		SkipLog:  c.GetHeader("X-Rdtest-NoAudit") == "1",
 		DeviceId: f.Id,
 		Uuid:     f.Uuid,
 		Ip:       c.ClientIP(),

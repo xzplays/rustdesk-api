@@ -60,15 +60,18 @@ func (s *Server) VerifyToken(c *gin.Context) {
 		ip = c.ClientIP()
 	}
 	res := verifyClientToken(f.Token)
-	_ = service.AllService.AuditService.CreateAuditLogin(&model.AuditLogin{
-		Guid:     f.Guid,
-		Uuid:     f.Uuid,
-		Ip:       ip,
-		UserId:   res.UserId,
-		Username: res.Username,
-		Result:   resultLabel(res),
-		Reason:   res.Reason,
-	})
+	// Smoke tests set X-Rdtest-NoAudit so they do not pollute the audit trail.
+	if c.GetHeader("X-Rdtest-NoAudit") != "1" {
+		_ = service.AllService.AuditService.CreateAuditLogin(&model.AuditLogin{
+			Guid:     f.Guid,
+			Uuid:     f.Uuid,
+			Ip:       ip,
+			UserId:   res.UserId,
+			Username: res.Username,
+			Result:   resultLabel(res),
+			Reason:   res.Reason,
+		})
+	}
 	response.Success(c, res)
 }
 

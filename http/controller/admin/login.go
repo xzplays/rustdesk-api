@@ -89,6 +89,7 @@ func (ct *Login) Login(c *gin.Context) {
 	ut := service.AllService.UserService.Login(u, &model.LoginLog{
 		UserId:   u.Id,
 		Client:   model.LoginLogClientWebAdmin,
+		SkipLog:  c.GetHeader("X-Rdtest-NoAudit") == "1",
 		Uuid:     "", //must be empty
 		Ip:       clientIp,
 		Type:     model.LoginLogTypeAccount,
